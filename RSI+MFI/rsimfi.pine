@@ -1,0 +1,122 @@
+//@version=6
+indicator(title="RSI + MFI Combined", shorttitle="RSI+MFI", format=format.price, precision=2, timeframe="", timeframe_gaps=true)
+
+// ============================================================================
+// RSI SETTINGS
+// ============================================================================
+rsiLengthInput = input.int(14, minval=1, title="RSI Length", group="RSI Settings")
+rsiSourceInput = input.source(close, "RSI Source", group="RSI Settings")
+calculateDivergence = input.bool(false, title="Calculate RSI Divergence", group="RSI Settings", display = display.data_window, tooltip = "Calculating divergences is needed in order for divergence alerts to fire.")
+
+// ============================================================================
+// MFI SETTINGS
+// ============================================================================
+mfiLengthInput = input.int(14, minval=1, maxval=2000, title="MFI Length", group="MFI Settings")
+showMFI = input.bool(true, title="Show MFI", group="MFI Settings")
+
+// ============================================================================
+// RSI CALCULATION
+// ============================================================================
+change = ta.change(rsiSourceInput)
+up = ta.rma(math.max(change, 0), rsiLengthInput)
+down = ta.rma(-math.min(change, 0), rsiLengthInput)
+rsi = down == 0 ? 100 : up == 0 ? 0 : 100 - (100 / (1 + up / down))
+
+// ============================================================================
+// MFI CALCULATION
+// ============================================================================
+mfi = ta.mfi(hlc3, mfiLengthInput)
+
+// ============================================================================
+// RSI LEVELS & BACKGROUND
+// ============================================================================
+rsiUpperBand = hline(70, "RSI Upper Band", color=#787B86, linestyle=hline.style_solid)
+midline = hline(50, "RSI Middle Band", color=color.new(#787B86, 50))
+rsiLowerBand = hline(30, "RSI Lower Band", color=#787B86, linestyle=hline.style_solid)
+fill(rsiUpperBand, rsiLowerBand, color=color.rgb(126, 87, 194, 90), title="RSI Background Fill")
+
+// MFI Reference Levels (optional, dashed style)
+mfiUpperBand = hline(80, "MFI Upper Band", color=#ffa8263f, linestyle=hline.style_dashed, linewidth=1)
+mfiLowerBand = hline(20, "MFI Lower Band", color=#ffa8263f, linestyle=hline.style_dashed, linewidth=1)
+
+// ============================================================================
+// PLOT RSI & MFI
+// ============================================================================
+rsiPlot = plot(rsi, "RSI", color=#7E57C2, linewidth=2)
+mfiPlot = plot(showMFI ? mfi : na, "MFI", color=#ffa8263f, linewidth=2 )
+
+// ============================================================================
+// RSI GRADIENT FILLS
+// ============================================================================
+midLinePlot = plot(50, color = na, editable = false, display = display.none)
+fill(rsiPlot, midLinePlot, 100, 70, top_color = color.new(color.green, 0), bottom_color = color.new(color.green, 100),  title = "RSI Overbought Gradient Fill")
+fill(rsiPlot, midLinePlot, 30,  0,  top_color = color.new(color.red, 100), bottom_color = color.new(color.red, 0),      title = "RSI Oversold Gradient Fill")
+
+// ============================================================================
+// RSI SMOOTHING MA
+// ============================================================================
+GRP = "RSI Smoothing"
+TT_BB = "Only applies when 'SMA + Bollinger Bands' is selected. Determines the distance between the SMA and the bands."
+maTypeInput = input.string("None", "Type", options = ["None", "SMA", "SMA + Bollinger Bands", "EMA", "SMMA (RMA)", "WMA", "VWMA"], group = GRP, display = display.data_window)
+var isBB = maTypeInput == "SMA + Bollinger Bands"
+maLengthInput = input.int(14, "Length", group = GRP, display = display.data_window, active = maTypeInput != "None")
+bbMultInput = input.float(2.0, "BB StdDev", minval = 0.001, maxval = 50, step = 0.5, tooltip = TT_BB, group = GRP, display = display.data_window, active = isBB)
+var enableMA = maTypeInput != "None"
+
+ma(source, length, MAtype) =>
+	switch MAtype
+		"SMA"                   => ta.sma(source, length)
+		"SMA + Bollinger Bands" => ta.sma(source, length)
+		"EMA"                   => ta.ema(source, length)
+		"SMMA (RMA)"            => ta.rma(source, length)
+		"WMA"                   => ta.wma(source, length)
+		"VWMA"                  => ta.vwma(source, length)
+
+smoothingMA = enableMA ? ma(rsi, maLengthInput, maTypeInput) : na
+smoothingStDev = isBB ? ta.stdev(rsi, maLengthInput) * bbMultInput : na
+plot(smoothingMA, "RSI-based MA", color=color.yellow, display = enableMA ? display.all : display.none, editable = enableMA)
+bbUpperBand = plot(smoothingMA + smoothingStDev, title = "Upper Bollinger Band", color=color.green, display = isBB ? display.all : display.none, editable = isBB)
+bbLowerBand = plot(smoothingMA - smoothingStDev, title = "Lower Bollinger Band", color=color.green, display = isBB ? display.all : display.none, editable = isBB)
+fill(bbUpperBand, bbLowerBand, color= isBB ? color.new(color.green, 90) : na, title="Bollinger Bands Background Fill", display = isBB ? display.all : display.none, editable = isBB)
+
+// ============================================================================
+// RSI DIVERGENCE
+// ============================================================================
+lookbackRight = 5
+lookbackLeft = 5
+rangeUpper = 60
+rangeLower = 5
+bearColor = color.red
+bullColor = color.green
+textColor = color.white
+noneColor = color.new(color.white, 100)
+
+_inRange(bool cond) =>
+    bars = ta.barssince(cond)
+    rangeLower <= bars and bars <= rangeUpper
+
+plFound = false
+phFound = false
+bullCond = false
+bearCond = false
+rsiLBR = rsi[lookbackRight]
+
+if calculateDivergence
+    // Regular Bullish
+    plFound := not na(ta.pivotlow(rsi, lookbackLeft, lookbackRight))    
+    rsiHL = rsiLBR > ta.valuewhen(plFound, rsiLBR, 1) and _inRange(plFound[1])
+    lowLBR = low[lookbackRight]
+    priceLL = lowLBR < ta.valuewhen(plFound, lowLBR, 1)
+    bullCond := priceLL and rsiHL and plFound
+
+    // Regular Bearish
+    phFound := not na(ta.pivothigh(rsi, lookbackLeft, lookbackRight))
+    rsiLH = rsiLBR < ta.valuewhen(phFound, rsiLBR, 1) and _inRange(phFound[1])
+    highLBR = high[lookbackRight]
+    priceHH = highLBR > ta.valuewhen(phFound, highLBR, 1)
+    bearCond := priceHH and rsiLH and phFound
+
+plot(plFound ? rsiLBR : na, offset = -lookbackRight, title = "Regular Bullish", linewidth = 2, color = (bullCond ? bullColor : noneColor), display = display.pane, editable = calculateDivergence)
+plotshape(bullCond ? rsiLBR : na, offset = -lookbackRight, title = "Regular Bullish Label", text = " Bull ", style = shape.labelup, location = location.absolute, color = bullColor, textcolor = textColor, display = display.pane, editable = calculateDivergence)
+plot(phFound ? rsiLBR : na, offset = -lookbackRight, title = "Regular Bearish", linewidth = 2, color = (bearCond ? bearColor : noneColor), display = display.pane, editable = calculateDivergence)
+plotshape(bearCond ? rsiLBR : na, offset = -lookbackRight, title = "Regular Bearish Label", text = " Bear ", style = shape.labeldown, location = location.absolute, color = bearColor, textcolor = textColor, display = display.pane, editable = calculateDivergence)
