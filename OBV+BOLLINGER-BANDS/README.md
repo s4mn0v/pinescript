@@ -1,46 +1,46 @@
-# Concepto Básico
+# Basic Concept
 
-Este indicador analiza el volumen de trading para confirmar la fuerza de las tendencias de precio. Combina el OBV (On Balance Volume) con Bandas de Bollinger y una EMA rápida.
+This indicator analyzes trading volume to confirm the strength of price trends. It combines OBV (On Balance Volume) with Bollinger Bands and a fast EMA.
 
-## Componentes del Indicador
+## Indicator Components
 
-### 1. OBV (On Balance Volume) - Línea Azul
+### 1. OBV (On Balance Volume) - Blue Line
 
-Es un indicador de volumen acumulativo que mide la presión de compra y venta:
+This is a cumulative volume indicator that measures buying and selling pressure:
 
-- **Sube:** Cuando el precio cierra más alto que el cierre anterior (volumen de compra)
-- **Baja:** Cuando el precio cierra más bajo que el cierre anterior (volumen de venta)
+- **Rises:** When the price closes higher than the previous close (buying volume)
+- **Falls:** When the price closes lower than the previous close (selling volume)
 
-**Concepto clave:** Si el OBV sube mientras el precio sube, confirma que la tendencia alcista es fuerte (hay volumen real detrás del movimiento).
+**Key concept:** If the OBV rises while the price rises, it confirms that the uptrend is strong (there is real volume behind the movement).
 
-### 2. Bandas de Bollinger aplicadas al OBV
+### 2. Bollinger Bands applied to OBV
 
-En lugar de aplicarse al precio, estas bandas se aplican al OBV para medir su volatilidad:
+Instead of being applied to the price, these bands are applied to the OBV to measure its volatility:
 
-- **Banda Media (amarilla punteada):** SMA de 20 períodos del OBV
-- **Banda Superior (roja punteada):** Indica alta presión de compra
-- **Banda Inferior (verde punteada):** Indica alta presión de venta
-- **Relleno verde claro:** Área entre las bandas
+- **Middle Band (yellow dotted):** 20-period SMA of OBV
+- **Upper Band (red dotted):** Indicates high buying pressure
+- **Lower Band (green dotted):** Indicates high selling pressure
+- **Light green fill:** Area between the bands
 
-### 3. EMA 10 del OBV (línea morada)
+### 3. OBV 10 EMA (purple line)
 
-Es una media rápida del OBV que detecta cambios de momentum más rápidamente.
+This is a fast average of the OBV that detects changes in momentum more quickly.
 
-### 4. Relleno de Color entre EMA 10 y Banda Media
+### 4. Color Fill between 10 EMA and Middle Band
 
-- **Verde:** EMA 10 por encima de la banda media = momentum alcista en el volumen
-- **Rojo:** EMA 10 por debajo de la banda media = momentum bajista en el volumen
+- **Green:** 10 EMA above the middle band = upward momentum in volume
+- **Red:** EMA 10 below the middle band = bearish momentum in volume
 
-## Cómo Interpretarlo
+## How to Interpret It
 
-**Divergencias (lo más importante):**
-- **Divergencia alcista:** Precio hace mínimos más bajos, pero OBV hace mínimos más altos (posible reversión al alza)
-- **Divergencia bajista:** Precio hace máximos más altos, pero OBV hace máximos más bajos (posible reversión a la baja)
+**Divergences (most important):**
+- **Bullish divergence:** Price makes lower lows, but OBV makes higher lows (possible upward reversal)
+- **Bearish divergence:** Price makes higher highs, but OBV makes lower highs (possible downward reversal)
 
-**Confirmación de tendencia:**
-- Tendencia alcista fuerte: Precio sube Y OBV sube (relleno verde)
-- Tendencia bajista fuerte: Precio baja Y OBV baja (relleno rojo)
+**Trend confirmation:**
+- Strong uptrend: Price rises AND OBV rises (green fill)
+- Strong downtrend: Price falls AND OBV falls (red fill)
 
-**Señales de momentum:**
-- EMA 10 cruza por encima de la banda media = aumento de presión compradora
-- EMA 10 cruza por debajo de la banda media = aumento de presión vendedora
+**Momentum signals:**
+- EMA 10 crosses above the middle band = increase in buying pressure
+- EMA 10 crosses below the middle band = increase in selling pressure

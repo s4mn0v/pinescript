@@ -1,43 +1,43 @@
-# RSI + MFI Combinados
+# RSI + MFI Combined
 
-**Qué logras:** Confirmar si una señal es REAL o FALSA comparando precio (RSI) con volumen (MFI).
+**What you achieve:** Confirm whether a signal is REAL or FALSE by comparing price (RSI) with volume (MFI).
 
-## Las 4 Situaciones
+## The 4 Situations
 
-### 1. Ambos en Sobrecompra (RSI >70 + MFI >80)
+### 1. Both Overbought (RSI >70 + MFI >80)
 
-**Significado:** Precio alto CON mucho dinero entrando **Acción:** SEÑAL FUERTE de tope. Alto riesgo de corrección. **Ejemplo:** BTC en $50k, RSI 75, MFI 85 = todos compraron, posible caída próxima
+**Meaning:** High price WITH a lot of money coming in **Action:** STRONG SIGNAL of a top. High risk of correction. **Example:** BTC at $50k, RSI 75, MFI 85 = everyone bought, possible drop coming soon
 
-### 2. Ambos en Sobreventa (RSI <30 + MFI <20)
+### 2. Both Oversold (RSI <30 + MFI <20)
 
-**Significado:** Precio bajo CON mucho dinero saliendo **Acción:** SEÑAL FUERTE de fondo. Posible rebote. **Ejemplo:** BTC en $38k, RSI 25, MFI 18 = pánico masivo, oportunidad de compra
+**Meaning:** Low price WITH a lot of money flowing out **Action:** STRONG SIGNAL of bottom. Possible rebound. **Example:** BTC at $38k, RSI 25, MFI 18 = mass panic, buying opportunity
 
-### 3. RSI en Sobrecompra pero MFI Normal (RSI >70 + MFI 40-60)
+### 3. RSI Overbought but MFI Normal (RSI >70 + MFI 40-60)
 
-**Significado:** Precio subió SIN respaldo de volumen **Acción:** Subida débil, probable FALSA. No compres. **Ejemplo:** BTC sube 8% pero sin volumen real = trampa alcista
+**Meaning:** Price rose WITHOUT volume support **Action:** Weak rise, likely FALSE. Do not buy. **Example:** BTC rises 8% but without real volume = bull trap
 
-### 4. RSI en Sobreventa pero MFI Normal (RSI <30 + MFI 40-60)
+### 4. RSI Oversold but MFI Normal (RSI <30 + MFI 40-60)
 
-**Significado:** Precio cayó SIN convicción vendedora real **Acción:** Caída débil, probable rebote rápido. **Ejemplo:** BTC baja 7% por liquidaciones pero sin venta masiva = recuperación pronto
+**Meaning:** Price fell WITHOUT real selling conviction **Action:** Weak decline, likely quick rebound. **Example:** BTC falls 7% due to liquidations but without massive selling = recovery soon
 
-## Divergencias (Señal Premium)
+## Divergences (Premium Signal)
 
-**Divergencia Alcista:**
+**Bullish Divergence:**
 
-- RSI hace mínimo más alto
-- MFI hace mínimo más alto
-- Precio hace mínimo más bajo = Compra anticipada, reversión alcista probable
+- RSI makes higher low
+- MFI makes higher low
+- Price makes lower low = Buy early, bullish reversal likely
 
-**Divergencia Bajista:**
+**Bearish Divergence:**
 
-- RSI hace máximo más bajo
-- MFI hace máximo más bajo
-- Precio hace máximo más alto = Venta anticipada, reversión bajista probable
+- RSI makes lower high
+- MFI makes lower high
+- Price makes higher high = Sell early, bearish reversal likely
 
-## Estrategia Práctica
+## Practical Strategy
 
-**Compra solo cuando:** RSI <30 Y MFI <20 = Ambos confirman sobreventa con volumen
+**Buy only when:** RSI <30 AND MFI <20 = Both confirm oversold with volume
 
-**Vende solo cuando:** RSI >70 Y MFI >80 = Ambos confirman sobrecompra con volumen
+**Sell only when:** RSI >70 AND MFI >80 = Both confirm overbought with volume
 
-**Ignora cuando:** RSI y MFI no coinciden = Señal no confiable, espera confirmación
+**Ignore when:** RSI and MFI do not match = Unreliable signal, wait for confirmation

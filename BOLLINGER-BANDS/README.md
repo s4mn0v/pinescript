@@ -1,45 +1,47 @@
-# Concepto Básico
+# Basic Concept
 
-Este indicador combina dos herramientas de análisis técnico: EMAs para identificar tendencias y Bandas de Bollinger para medir volatilidad y niveles de sobrecompra/sobreventa.
+This indicator combines two technical analysis tools: EMAs to identify trends and Bollinger Bands to measure volatility and overbought/oversold levels.
 
-## Componentes del Indicador
+## Indicator Components
 
-### 1. Bandas de Bollinger
+### 1. Bollinger Bands
 
-Son tres líneas que forman un canal alrededor del precio:
+These are three lines that form a channel around the price:
 
-- **Banda Superior (roja):** Indica posible zona de sobrecompra
-- **Banda Media (azul punteada):** Es el promedio móvil de 20 períodos, muestra el precio medio
-- **Banda Inferior (verde):** Indica posible zona de sobreventa
-- **Relleno morado:** El área entre las bandas superior e inferior muestra la volatilidad del mercado
+- **Upper Band (red):** Indicates a possible overbought zone
+- **Middle Band (blue dotted):** This is the 20-period moving average, showing the average price
+- **Lower Band (green):** Indicates a possible oversold zone
+- **Purple Fill:** The area between the upper and lower bands shows market volatility
 
-**Configuración:** 
-- Usa SMA de 20 períodos por defecto
-- Desviación estándar de 2.0
-- Puedes cambiar el tipo de media móvil (SMA, EMA, WMA, etc.)
+**Configuration:**
+- Uses a 20-period SMA by default
+- Standard deviation of 2.0
+- You can change the type of moving average (SMA, EMA, WMA, etc.)
 
-### 2. EMAs (Medias Móviles Exponenciales)
+### 2. EMAs (Exponential Moving Averages)
 
-- **EMA 9 (línea roja):** Media rápida que sigue de cerca el precio actual
-- **EMA 21 (línea verde):** Media más lenta que indica la tendencia de mediano plazo
+- **EMA 9 (red line):** Fast average that closely follows the current price
+- **EMA 21 (green line):** Slower average that indicates the medium-term trend
 
-### 3. Relleno de Color entre EMA 9 y Banda Media
+### 3. Color Fill between EMA 9 and Middle Band
 
-- **Verde:** Cuando EMA 9 está por encima de la banda media (tendencia alcista)
-- **Rojo:** Cuando EMA 9 está por debajo de la banda media (tendencia bajista)
+- **Green:** When EMA 9 is above the middle band (uptrend)
+- **Red:** When EMA 9 is below the middle band (downtrend)
 
-## Cómo Interpretarlo
+## How to Interpret It
 
-**Señales Alcistas:**
-- Precio por encima de la banda media
-- EMA 9 por encima de la banda media (relleno verde)
-- EMA 9 por encima de EMA 21
+**Bullish Signals:**
+- Price above the middle band
+- EMA 9 above the middle band (green fill)
+- EMA 9 above EMA 21
 
-**Señales Bajistas:**
-- Precio por debajo de la banda media
-- EMA 9 por debajo de la banda media (relleno rojo)
-- EMA 9 por debajo de EMA 21
+**Bearish Signals:**
+- Price below the middle band
+- EMA 9 below the middle band (red fill)
+- EMA 9 below EMA 21
 
-**Volatilidad:**
-- Bandas anchas = alta volatilidad
-- Bandas estrechas = baja volatilidad (posible ruptura próxima)
+**Volatility:**
+- Wide bands = high volatility
+- Narrow bands = low volatility (possible breakout coming)
+
+Translated with DeepL.com (free version)

@@ -1,23 +1,25 @@
-# Indicadores en Pine Script
+# Indicators in Pine Script
 
-1. [Confirmar señales | RSI + MFI](RSI+MFI/README.md)<br>
-    Confirmar si una señal es REAL o FALSA comparando precio (RSI) con volumen (MFI).
+1. [Confirm signals | RSI + MFI](RSI+MFI/README.md)<br>
+    Confirm whether a signal is TRUE or FALSE by comparing price (RSI) with volume (MFI).
 
-2. [Estrategia de cruces de EMAs](CROSSOVER-EMAs/README.md)<br>
-    Esta estrategia compra y vende automáticamente basándose en el cruce de dos líneas: una EMA rápida (9 períodos) y una EMA lenta (21 períodos).
+2. [EMA Crossovers Strategy](CROSSOVER-EMAs/README.md)<br>
+    This strategy automatically buys and sells based on the crossover of two lines: a fast EMA (9 periods) and a slow EMA (21 periods).
 
-3. [Bollinger Bands & Cruces de EMAs](BOLLINGER-BANDS/README.md)<br>
-    Este indicador combina dos herramientas de análisis técnico: EMAs para identificar tendencias y Bandas de Bollinger para medir volatilidad y niveles de sobrecompra/sobreventa.
+3. [Bollinger Bands & EMA Crossovers](BOLLINGER-BANDS/README.md)<br>
+    This indicator combines two technical analysis tools: EMAs to identify trends and Bollinger Bands to measure volatility and overbought/oversold levels.
 
 4. [OBV & Bollinger Bands](OBV+BOLLINGER-BANDS/README.md)<br>
-    Este indicador analiza el volumen de trading para confirmar la fuerza de las tendencias de precio. Combina el OBV (On Balance Volume) con Bandas de Bollinger y una EMA rápida.
+  This indicator analyzes trading volume to confirm the strength of price trends. It combines OBV (On Balance Volume) with Bollinger Bands and a fast EMA.
 
 5. [MACD Impulse](MACD-IMPULSE/README.md)<br>
-    Este indicador mide la fuerza del impulso del precio (momentum) de una manera más suave y menos ruidosa que el MACD tradicional. Usa medias móviles especiales para filtrar el ruido del mercado.
+    This indicator measures the strength of price momentum in a smoother and less noisy way than traditional MACD. It uses special moving averages to filter out market noise.
 
 <br>
 <br>
 
 ---
 > [!NOTE]
-> I got borred so I'm learning new skills
+> I got bored so I'm learning new skills
+
+Translated with DeepL.com (free version)

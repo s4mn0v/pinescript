@@ -1,30 +1,32 @@
-# Concepto Básico
+# Basic Concept
 
-Esta estrategia compra y vende automáticamente basándose en el cruce de dos líneas: una EMA rápida (9 períodos) y una EMA lenta (21 períodos).
+This strategy automatically buys and sells based on the crossover of two lines: a fast EMA (9 periods) and a slow EMA (21 periods).
 
-## ¿Qué es una EMA?
+## What is an EMA?
 
-EMA = Media Móvil Exponencial. Es una línea que suaviza el precio y muestra la tendencia promedio. La EMA rápida (9) reacciona más rápido a los cambios de precio que la EMA lenta (21).
+EMA = Exponential Moving Average. It is a line that smooths the price and shows the average trend. The fast EMA (9) reacts faster to price changes than the slow EMA (21).
 
-## Señales de Compra y Venta
+## Buy and Sell Signals
 
-**COMPRA:** Cuando la EMA de 9 cruza por encima de la EMA de 21
-- Significa que el precio está subiendo con fuerza
-- La estrategia entra en posición larga (compra)
+**BUY:** When the 9 EMA crosses above the 21 EMA
+- It means that the price is rising strongly
+- The strategy enters a long position (buy)
 
-**VENTA:** Cuando la EMA de 9 cruza por debajo de la EMA de 21
-- Significa que el precio está bajando o perdiendo fuerza
-- La estrategia cierra la posición (vende)
+**SELL:** When the 9 EMA crosses below the 21 EMA
+- This means that the price is falling or losing momentum
+- The strategy closes the position (sells)
 
-## Parámetros de la Estrategia
+## Strategy Parameters
 
-- Capital inicial: 1000 USDT
-- Usa el 100% del capital en cada operación
-- Solo permite 1 operación abierta a la vez (pyramiding = 1)
-- Puedes definir las fechas de inicio y fin para el backtest
-- Opción de colorear el fondo: verde cuando EMA 9 > EMA 21, rojo cuando EMA 9 < EMA 21
+- Initial capital: 1000 USDT
+- Use 100% of capital in each trade
+- Only allow 1 open trade at a time (pyramiding = 1)
+- You can set the start and end dates for the backtest
+- Option to color the background: green when EMA 9 > EMA 21, red when EMA 9 < EMA 21
 
-## Visualización
+## Visualization
 
-- Etiqueta verde "Buy" aparece debajo de la vela cuando hay señal de compra
-- Etiqueta roja "Sell" aparece encima de la vela cuando hay señal de venta
+- Green “Buy” label appears below the candle when there is a buy signal
+- Red “Sell” label appears above the candle when there is a sell signal
+
+Translated with DeepL.com (free version)
