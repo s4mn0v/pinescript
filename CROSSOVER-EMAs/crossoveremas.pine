@@ -1,0 +1,45 @@
+//@version=6
+strategy('Custom EMA Crossover Strategy', overlay = true, initial_capital = 1000, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, currency = currency.USDT, pyramiding = 1)
+
+// Inputs
+backTestStartYear = input.int(2019, 'Backtest Start Year')
+backTestStartMonth = input.int(1, 'Backtest Start Month')
+backTestStartDay = input.int(1, 'Backtest Start Day')
+backTestStartHour = input.int(0, 'Backtest Start Hour')
+backTestStartMinute = input.int(0, 'Backtest Start Minute')
+backTestStopYear = input.int(2099, 'Backtest Stop Year')
+backTestStopMonth = input.int(1, 'Backtest Stop Month')
+backTestStopDay = input.int(30, 'Backtest Stop Day')
+colorBackground = input.bool(false, 'Color Background?')
+ema1Length = input.int(9, 'Select EMA 1')
+ema2Length = input.int(21, 'Select EMA 2')
+
+// Calculate EMAs
+ema1 = ta.ema(close, ema1Length)
+ema2 = ta.ema(close, ema2Length)
+
+// Determine if we're within the backtest period
+backTestStart = timestamp(backTestStartYear, backTestStartMonth, backTestStartDay, backTestStartHour, backTestStartMinute)
+backTestStop = timestamp(backTestStopYear, backTestStopMonth, backTestStopDay, 23, 59)
+inBackTestPeriod = time >= backTestStart and time <= backTestStop
+
+// Generate buy and sell signals
+buySignal = ta.crossover(ema1, ema2) and inBackTestPeriod
+sellSignal = ta.crossunder(ema1, ema2) and inBackTestPeriod
+
+// Execute strategy
+if buySignal
+    strategy.entry('Buy', strategy.long)
+if sellSignal
+    strategy.close('Buy')
+
+// Plotting
+plotshape(buySignal, style = shape.labelup, location = location.belowbar, color = color.green, size = size.small, text = 'Buy')
+plotshape(sellSignal, style = shape.labeldown, location = location.abovebar, color = color.red, size = size.small, text = 'Sell')
+
+// Background color
+bgcolor(colorBackground ? ema1 > ema2 ? color.new(color.green, 90) : color.new(color.red, 90) : na)
+
+// Plotting EMAs
+plot(ema1, title = "EMA 9", color = color.green, linestyle = plot.linestyle_dashed)
+plot(ema2, title = "EMA 21", color = color.red, linestyle = plot.linestyle_dashed)

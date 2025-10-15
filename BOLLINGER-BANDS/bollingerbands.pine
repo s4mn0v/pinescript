@@ -1,0 +1,41 @@
+//@version=6
+indicator("EMA 9, EMA 21 & Bollinger Bands", overlay=true)
+
+// Bollinger Bands
+length = input.int(20, minval=1)
+maType = input.string("SMA", "Basis MA Type", options = ["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"])
+src = input(close, title="Source")
+mult = input.float(2.0, minval=0.001, maxval=50, title="StdDev")
+
+ma(source, length, _type) =>
+    switch _type
+        "SMA" => ta.sma(source, length)
+        "EMA" => ta.ema(source, length)
+        "SMMA (RMA)" => ta.rma(source, length)
+        "WMA" => ta.wma(source, length)
+        "VWMA" => ta.vwma(source, length)
+
+basis = ma(src, length, maType)
+dev = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+offset = input.int(0, "Offset", minval = -500, maxval = 500, display = display.data_window)
+basisPlot = plot(basis, "Basis", color=color.rgb(41, 98, 255, 20), offset = offset, linestyle = plot.linestyle_dashed, linewidth = 2)
+p1 = plot(upper, "Upper", color=color.rgb(255, 38, 0, 20), offset = offset, linestyle = plot.linestyle_dashed)
+p2 = plot(lower, "Lower", color=color.rgb(0, 255, 26, 20), offset = offset, linestyle = plot.linestyle_dashed)
+fill(p1, p2, title = "Background", color=color.rgb(204, 0, 255, 98))
+
+// ------------------------- //
+
+// EMAs
+length1 = input(9, title="EMA Length 1")
+length2 = input(21, title="EMA Length 2")
+
+ema1 = ta.ema(close, length1)
+ema2 = ta.ema(close, length2)
+
+ema1Plot = plot(ema1, color=color.rgb(255, 82, 82, 70), title="EMA 9", linewidth = 2)
+plot(ema2, color=color.rgb(76, 175, 79, 70), title="EMA 21", linewidth = 2)
+
+// Fill entre EMA 9 y banda media de Bollinger
+fill(ema1Plot, basisPlot, color=ema1 > basis ? color.new(#4caf4f, 90): color.new(#ff5252, 90))
