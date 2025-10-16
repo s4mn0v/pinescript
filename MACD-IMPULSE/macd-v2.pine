@@ -1,0 +1,41 @@
+//@version=6
+indicator("Impulse MACD Modified", shorttitle="Impulse MACD", overlay=false)
+
+lengthMA = input(34)
+lengthSignal = input(9)
+
+// === Funciones de medias ===
+calc_smma(src, len) =>
+    var float smma = na
+    smma := na(smma[1]) ? ta.sma(src, len) : (smma[1] * (len - 1) + src) / len
+    smma
+
+calc_zlema(src, length) =>
+    ema1 = ta.ema(src, length)
+    ema2 = ta.ema(ema1, length)
+    d = ema1 - ema2
+    ema1 + d
+
+// === Cálculos principales ===
+src = hlc3
+hi = calc_smma(high, lengthMA)
+lo = calc_smma(low, lengthMA)
+mi = calc_zlema(src, lengthMA) 
+
+md = (mi > hi) ? (mi - hi) : (mi < lo) ? (mi - lo) : 0
+sb = ta.sma(md, lengthSignal)
+sh = md - sb
+
+// === Plots ===
+plot(0, color=color.gray, linewidth=1, title="MidLine")
+plot(md, color=color.rgb(76, 175, 79, 25), linewidth = 2, title="ImpulseMACD")
+
+// Histograma con color condicional: verde arriba de 0, rojo abajo de 0
+histoColor = sh >= 0 ? color.rgb(76, 175, 79, 56) : color.rgb(255, 0, 0, 56)
+plot(sh, color=histoColor, title="ImpulseHisto", style=plot.style_columns)
+
+plot(sb, color=color.rgb(255, 82, 82, 25), linewidth = 2, title="ImpulseMACDSignal")
+
+// === Color de velas (opcional) ===
+ebc = input(false, title="Enable bar colors")
+barcolor(ebc ? color.rgb(76, 175, 79, 95) : na)
