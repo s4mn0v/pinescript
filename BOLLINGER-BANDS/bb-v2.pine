@@ -28,16 +28,16 @@ fill(p1, p2, title = "Background", color=color.rgb(204, 0, 255, 98))
 // ------------------------- //
 
 // EMAs
-length1 = input(9, title="EMA Length 9")
-length2 = input(21, title="EMA Length 21")
+length1 = input(21, title="EMA Length 21")
+length2 = input(50, title="EMA Length 50")
 length3 = input(200, title="EMA Length 200")
 
 ema1 = ta.ema(close, length1)
 ema2 = ta.ema(close, length2)
 ema3 = ta.ema(close, length3)
 
-ema1Plot = plot(ema1, color=#fffc31b9, title="EMA 9", linewidth = 2)
-plot(ema2, color = #00d9c0b9, title="EMA 21", linewidth = 2)
+ema1Plot = plot(ema1, color=#fffc31b9, title="EMA 21", linewidth = 2)
+plot(ema2, color = #00d9c0b9, title="EMA 50", linewidth = 2)
 plot(ema3, color = #8600ce, title ="EMA 200", linewidth = 2)
 
 // Fill entre EMA 9 y banda media de Bollinger
