@@ -1,5 +1,5 @@
 //@version=6
-indicator("EMA 9, EMA 21 & Bollinger Bands", overlay=true)
+indicator("EMA 21, 50, 200 & Bollinger Bands", shorttitle = "EMA + BB", overlay=true)
 
 // Bollinger Bands
 length = input.int(20, minval=1)
