@@ -30,14 +30,14 @@ ma(source, length, MAtype) =>
 // Smoothing MA plots
 smoothingMA = enableMA ? ma(obv, maLengthInput, maTypeInput) : na
 smoothingStDev = isBB ? ta.stdev(obv, maLengthInput) * bbMultInput : na
-basisPlot = plot(smoothingMA, "OBV-based MA", color=color.yellow, display = enableMA ? display.all : display.none, linestyle = plot.linestyle_dashed, editable = enableMA)
+basisPlot = plot(smoothingMA, "OBV-based MA", color=color.rgb(255, 217, 0, 50), display = enableMA ? display.all : display.none, linestyle = plot.linestyle_dashed, editable = enableMA)
 bbUpperBand = plot(smoothingMA + smoothingStDev, title = "Upper Bollinger Band", color=color.rgb(255, 82, 82, 30), linestyle = plot.linestyle_dashed, linewidth=1, display = isBB ? display.all : display.none, editable = isBB)
 bbLowerBand = plot(smoothingMA - smoothingStDev, title = "Lower Bollinger Band", color=color.rgb(76, 175, 79, 30), linestyle = plot.linestyle_dashed, linewidth=1, display = isBB ? display.all : display.none, editable = isBB)
-fill(bbUpperBand, bbLowerBand, color= isBB ? color.new(color.green, 95) : na, title="Bollinger Bands Background Fill", display = isBB ? display.all : display.none, editable = isBB)
+fill(bbUpperBand, bbLowerBand, color= isBB ? color.new(color.green, 98) : na, title="Bollinger Bands Background Fill", display = isBB ? display.all : display.none, editable = isBB)
 
 // EMA rápida para señales
 ema10 = ta.ema(obv, 10)
 ema10Plot = plot(ema10, "EMA 10", color=color.new(color.purple, 60), linewidth=2)
 
 // Fill dinámico - Tu señal principal
-fill(ema10Plot, basisPlot, color=ema10 > smoothingMA ? color.new(#4caf4f, 70): color.new(#ff5252, 70))
+fill(ema10Plot, basisPlot, color=ema10 > smoothingMA ? color.new(#4caf4f, 85): color.new(#ff5252, 85))
