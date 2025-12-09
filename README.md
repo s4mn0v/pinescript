@@ -24,5 +24,3 @@
 ---
 > [!NOTE]
 > I got bored so I'm learning new skills
-
-Translated with DeepL.com (free version)
