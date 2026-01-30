@@ -18,7 +18,9 @@
 7. [MACD Impulse](MACD-IMPULSE/README.md)<br>
     This indicator measures the strength of price momentum in a smoother and less noisy way than traditional MACD. It uses special moving averages to filter out market noise.
 
-<br>
+8. [Order Flow Bubbles](DEEP-CHART/README.md)<br>
+    Deep Chart is an indicator I designed to show you the hidden "tug-of-war" inside every single candle. I created this by utilizing TradingView's ability to peak inside a bar to see the tiny trades that normally stay hidden. I have included a system of colorful "Bubbles" to mark exactly where the big, aggressive trades happened. I developed this by utilizing internal scanning logic to find the exact price levels of high activity. The result is a clear map I built to show market "hot spots" without the need to switch between different charts or timeframes.
+
 <br>
 
 ---

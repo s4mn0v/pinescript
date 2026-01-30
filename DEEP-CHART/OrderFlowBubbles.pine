@@ -1,0 +1,87 @@
+//@version=6
+indicator("Deep Chart - Order Flow Bubbles, by S4M-N0V", "DeepChart", overlay = true, max_labels_count = 500)
+
+// Find mixes indicator in: https://github.com/s4mn0v/pinescript
+
+// Library provided in your original snippet for the CVD calculation
+import TradingView/ta/9
+
+// --- Inputs ---
+anchorInput      = input.timeframe("1D", "CVD Reset Period")
+bubbleScale      = input.float(1.5, "Bubble Size Multiplier", minval = 0.1)
+volThreshold     = input.float(2.0, "Volume Sensitivity", minval = 1.0, tooltip = "Only show bubbles for levels with high relative volume")
+useCustomLTF     = input.bool(false, "Manual Deep Scanning", tooltip = "Manually choose the timeframe for deep market analysis")
+manualLTF        = input.timeframe("1", "Internal Timeframe")
+
+// --- 1. CVD Logic (Optimized for Visual Background) ---
+// Determine the lower timeframe for scanning
+var ltf = useCustomLTF ? manualLTF : 
+          timeframe.isseconds ? "1S" : 
+          timeframe.isintraday ? "1" : 
+          timeframe.isdaily ? "5" : "60"
+
+// Request Volume Delta for the CVD
+[oV, hV, lV, lastV] = ta.requestVolumeDelta(ltf, anchorInput)
+
+// Cumulative Delta State
+var float cumDelta = 0.
+if not na(lastV)
+    cumDelta := lastV
+
+// Visual Sentiment Background (Purely visual, no text)
+bgCol = cumDelta > 0 ? color.new(color.teal, 92) : color.new(color.red, 92)
+bgcolor(bgCol)
+
+// --- 2. Deep Market (DOM) Bubble Logic ---
+// retrieve an array of lower timeframe data for the current candle
+type BarData
+    float close
+    float volume
+    float delta
+
+// Get LTF arrays
+ltf_close  = request.security_lower_tf(syminfo.tickerid, ltf, close)
+ltf_vol    = request.security_lower_tf(syminfo.tickerid, ltf, volume)
+
+// Calculate aggressive volume (approximate delta per level)
+// Treat the LTF bar as a "Buy" if it closed higher than previous
+if array.size(ltf_close) > 0
+    float barAvgVol = array.avg(ltf_vol)
+    
+    // Scan the 'Internal' bars of the current candle
+    for i = 0 to array.size(ltf_close) - 1
+        float price  = array.get(ltf_close, i)
+        float vol    = array.get(ltf_vol, i)
+        
+        // Logic: Only plot bubbles for "Spikes" in volume (Deep Market Activity)
+        if vol > (barAvgVol * volThreshold)
+            // Determine side based on price action within that micro-bar
+            bool isAggressiveBuy = i > 0 ? array.get(ltf_close, i) > array.get(ltf_close, i-1) : close > open
+            color bubbleCol = isAggressiveBuy ? color.new(color.teal, 40) : color.new(color.red, 40)
+            
+            // Dynamic Size Calculation
+            string bSize = size.tiny
+            if vol > barAvgVol * 5
+                bSize := size.large
+            else if vol > barAvgVol * 3
+                bSize := size.normal
+            else
+                bSize := size.small
+            
+            // Create the Bubble (Label with no text)
+            label.new(
+                 bar_index, 
+                 price, 
+                 text = "", 
+                 color = bubbleCol, 
+                 style = label.style_circle, 
+                 size = bSize
+             )
+
+// --- 3. Entry Signal logic (Filtering) ---
+// Find bars where volume is heavily concentrated at the edge (Absorption)
+bool buyEntry  = close > open and lastV > 0 and low == low[1] // Simple absorption logic
+bool sellEntry = close < open and lastV < 0 and high == high[1]
+
+plotshape(buyEntry, style=shape.triangleup, location=location.belowbar, color=color.teal, size=size.small)
+plotshape(sellEntry, style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)

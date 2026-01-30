@@ -1,0 +1,134 @@
+//@version=6
+indicator(title="Deep Chart + VWAP (Original Design)", shorttitle="DeepVWAP", overlay=true, max_labels_count = 500)
+
+// --- Imports ---
+import TradingView/ta/9
+
+// ==========================================
+// 1. CVD LOGIC (Sentiment Calculation)
+// ==========================================
+groupDeep = "Deep Chart Settings"
+anchorCVD      = input.timeframe("1D", "CVD Reset Period", group=groupDeep)
+volThreshold   = input.float(2.0, "Volume Sensitivity", minval = 1.0, group=groupDeep)
+useCustomLTF   = input.bool(false, "Manual Deep Scanning", group=groupDeep)
+manualLTF      = input.timeframe("1", "Internal Timeframe", group=groupDeep)
+
+var ltf = useCustomLTF ? manualLTF : 
+          timeframe.isseconds ? "1S" : 
+          timeframe.isintraday ? "1" : 
+          timeframe.isdaily ? "5" : "60"
+
+[oV, hV, lV, lastV] = ta.requestVolumeDelta(ltf, anchorCVD)
+
+var float cumDelta = 0.
+if not na(lastV)
+    cumDelta := lastV
+
+// Sentiment Color for the first band fill
+cvdTrendColor = cumDelta > 0 ? color.new(color.teal, 90) : color.new(color.red, 90)
+
+// ==========================================
+// 2. ORIGINAL VWAP LOGIC & DESIGN
+// ==========================================
+groupVWAP = "VWAP Settings"
+hideonDWM = input(false, title="Hide VWAP on 1D or Above", group=groupVWAP)
+var anchor = input.string(defval = "Session", title="Anchor Period", options=["Session", "Week", "Month", "Quarter", "Year", "Decade", "Century", "Earnings", "Dividends", "Splits"], group=groupVWAP)
+src = input(title = "Source", defval = hlc3, group=groupVWAP)
+offset = input.int(0, title="Offset", group=groupVWAP)
+
+BANDS_GROUP = "Bands Settings"
+calcModeInput = input.string("Standard Deviation", "Bands Calculation Mode", options = ["Standard Deviation", "Percentage"], group = BANDS_GROUP)
+showBand_1 = input(true, title = "Show Band 1", group = BANDS_GROUP)
+bandMult_1 = input.float(1.0, title = "Multiplier #1", group = BANDS_GROUP, step = 0.5, minval=0)
+showBand_2 = input(false, title = "Show Band 2", group = BANDS_GROUP)
+bandMult_2 = input.float(2.0, title = "Multiplier #2", group = BANDS_GROUP, step = 0.5, minval=0)
+showBand_3 = input(false, title = "Show Band 3", group = BANDS_GROUP)
+bandMult_3 = input.float(3.0, title = "Multiplier #3", group = BANDS_GROUP, step = 0.5, minval=0)
+
+// VWAP Anchor Calculation logic
+isNewPeriod = switch anchor
+	"Earnings"  => not na(request.earnings(syminfo.tickerid, earnings.actual, barmerge.gaps_on, barmerge.lookahead_on, ignore_invalid_symbol=true))
+	"Dividends" => not na(request.dividends(syminfo.tickerid, dividends.gross, barmerge.gaps_on, barmerge.lookahead_on, ignore_invalid_symbol=true))
+	"Splits"    => not na(request.splits(syminfo.tickerid, splits.denominator, barmerge.gaps_on, barmerge.lookahead_on, ignore_invalid_symbol=true))
+	"Session"   => timeframe.change("D")
+	"Week"      => timeframe.change("W")
+	"Month"     => timeframe.change("M")
+	"Quarter"   => timeframe.change("3M")
+	"Year"      => timeframe.change("12M")
+    "Decade"    => timeframe.change("12M") and year % 10 == 0
+	"Century"   => timeframe.change("12M") and year % 100 == 0
+	=> false
+
+if na(src[1]) and anchor != "Earnings" and anchor != "Dividends" and anchor != "Splits"
+	isNewPeriod := true
+
+float vwapValue = na
+float upperBandValue1 = na, float lowerBandValue1 = na
+float upperBandValue2 = na, float lowerBandValue2 = na
+float upperBandValue3 = na, float lowerBandValue3 = na
+
+if not (hideonDWM and timeframe.isdwm)
+    [_vwap, _stdevUpper, _] = ta.vwap(src, isNewPeriod, 1)
+	vwapValue := _vwap
+    stdevAbs = _stdevUpper - _vwap
+	bandBasis = calcModeInput == "Standard Deviation" ? stdevAbs : _vwap * 0.01
+    
+	upperBandValue1 := _vwap + bandBasis * bandMult_1
+	lowerBandValue1 := _vwap - bandBasis * bandMult_1
+	upperBandValue2 := _vwap + bandBasis * bandMult_2
+	lowerBandValue2 := _vwap - bandBasis * bandMult_2
+	upperBandValue3 := _vwap + bandBasis * bandMult_3
+	lowerBandValue3 := _vwap - bandBasis * bandMult_3
+
+// Plotting Original VWAP Lines
+plot(vwapValue, title = "VWAP", color = #2962FF, offset = offset)
+
+// Band 1 - Uses CVD Dynamic Fill
+pUp1 = plot(upperBandValue1, title="Upper Band #1", color = color.green, offset = offset, display = showBand_1 ? display.all : display.none)
+pLo1 = plot(lowerBandValue1, title="Lower Band #1", color = color.green, offset = offset, display = showBand_1 ? display.all : display.none)
+fill(pUp1, pLo1, title="Band 1 CVD Fill", color = cvdTrendColor, display = showBand_1 ? display.all : display.none)
+
+// Band 2 - Original Design
+pUp2 = plot(upperBandValue2, title="Upper Band #2", color = color.olive, offset = offset, display = showBand_2 ? display.all : display.none)
+pLo2 = plot(lowerBandValue2, title="Lower Band #2", color = color.olive, offset = offset, display = showBand_2 ? display.all : display.none)
+fill(pUp2, pLo2, title="Band 2 Fill", color = color.new(color.olive, 95), display = showBand_2 ? display.all : display.none)
+
+// Band 3 - Original Design
+pUp3 = plot(upperBandValue3, title="Upper Band #3", color = color.teal, offset = offset, display = showBand_3 ? display.all : display.none)
+pLo3 = plot(lowerBandValue3, title="Lower Band #3", color = color.teal, offset = offset, display = showBand_3 ? display.all : display.none)
+fill(pUp3, pLo3, title="Band 3 Fill", color = color.new(color.teal, 95), display = showBand_3 ? display.all : display.none)
+
+
+// ==========================================
+// 3. DEEP CHART - ORDER FLOW BUBBLES
+// ==========================================
+ltf_close = request.security_lower_tf(syminfo.tickerid, ltf, close)
+ltf_vol   = request.security_lower_tf(syminfo.tickerid, ltf, volume)
+
+if array.size(ltf_close) > 0
+    float barAvgVol = array.avg(ltf_vol)
+    
+    for i = 0 to array.size(ltf_close) - 1
+        float price  = array.get(ltf_close, i)
+        float vol    = array.get(ltf_vol, i)
+        
+        if vol > (barAvgVol * volThreshold)
+            bool isAggressiveBuy = i > 0 ? array.get(ltf_close, i) > array.get(ltf_close, i-1) : close > open
+            color bubbleCol = isAggressiveBuy ? color.new(color.teal, 40) : color.new(color.red, 40)
+            
+            string bSize = size.tiny
+            if vol > barAvgVol * 5
+                bSize := size.large
+            else if vol > barAvgVol * 3
+                bSize := size.normal
+            else
+                bSize := size.small
+            
+            label.new(bar_index, price, "", color=bubbleCol, style=label.style_circle, size=bSize)
+
+// Absorption Signals
+bool buyEntry  = close > open and lastV > 0 and low == low[1]
+bool sellEntry = close < open and lastV < 0 and high == high[1]
+
+plotshape(buyEntry, style=shape.triangleup, location=location.belowbar, color=color.teal, size=size.small, title="Long Signal")
+plotshape(sellEntry, style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, title="Short Signal")

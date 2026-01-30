@@ -1,0 +1,116 @@
+//@version=6
+indicator("Deep Chart + BB (CVD Internal)", shorttitle = "DeepBB_CVD", overlay = true, max_labels_count = 500)
+
+// --- Imports ---
+import TradingView/ta/9
+
+// ==========================================
+// 1. INPUTS
+// ==========================================
+groupBB = "Bollinger Bands"
+length   = input.int(20, "BB Length", minval=1, group=groupBB)
+maType   = input.string("SMA", "Basis MA Type", options = ["SMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], group=groupBB)
+src      = input(close, title="Source", group=groupBB)
+mult     = input.float(2.0, minval=0.001, maxval=50, title="StdDev", group=groupBB)
+offset   = input.int(0, "Offset", minval = -500, maxval = 500, group=groupBB)
+
+groupDeep = "Deep Chart Settings"
+anchorInput  = input.timeframe("1D", "CVD Reset Period", group=groupDeep)
+bubbleScale  = input.float(1.5, "Bubble Size Multiplier", minval = 0.1, group=groupDeep)
+volThreshold = input.float(2.0, "Volume Sensitivity", minval = 1.0, group=groupDeep)
+useCustomLTF = input.bool(false, "Manual Deep Scanning", group=groupDeep)
+manualLTF    = input.timeframe("1", "Internal Timeframe", group=groupDeep)
+
+// ==========================================
+// 2. CVD LOGIC (Moved up to define color first)
+// ==========================================
+var ltf = useCustomLTF ? manualLTF : 
+          timeframe.isseconds ? "1S" : 
+          timeframe.isintraday ? "1" : 
+          timeframe.isdaily ? "5" : "60"
+
+[oV, hV, lV, lastV] = ta.requestVolumeDelta(ltf, anchorInput)
+
+var float cumDelta = 0.
+if not na(lastV)
+    cumDelta := lastV
+
+// Define the color based on CVD Trend
+// Using transparency 90 to match your previous design
+cvdBBColor = cumDelta > 0 ? color.new(color.teal, 90) : color.new(color.red, 90)
+
+// ==========================================
+// 3. BOLLINGER BANDS & EMA 9 LOGIC
+// ==========================================
+ma(source, length, _type) =>
+    switch _type
+        "SMA"        => ta.sma(source, length)
+        "EMA"        => ta.ema(source, length)
+        "SMMA (RMA)" => ta.rma(source, length)
+        "WMA"        => ta.wma(source, length)
+        "VWMA"       => ta.vwma(source, length)
+
+basis = ma(src, length, maType)
+dev   = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+// Plot BB Lines
+basisPlot = plot(basis, "Basis", color=color.rgb(41, 98, 255, 50), offset = offset, linestyle = plot.linestyle_dashed)
+p1 = plot(upper, "Upper", color=color.rgb(255, 0, 0, 50), offset = offset, linestyle = plot.linestyle_dashed)
+p2 = plot(lower, "Lower", color=color.rgb(0, 255, 26, 70), offset = offset, linestyle = plot.linestyle_dashed)
+
+// MODIFIED: BB Background Fill now uses the CVD color instead of Purple
+fill(p1, p2, title = "BB Background (CVD Trend)", color = cvdBBColor)
+
+// EMA 9 (Hidden for the fill logic)
+ema9       = ta.ema(close, 9)
+ema9Plot   = plot(ema9, color=color.new(color.white, 100), title="Hidden EMA 9", display = display.none)
+
+// Fill between EMA 9 and Bollinger Middle Band (Basis)
+fill(ema9Plot, basisPlot, color = ema9 > basis ? color.new(#4caf4f, 85) : color.new(#ff5252, 85), title="EMA 9 / Basis Fill")
+
+
+// ==========================================
+// 4. DEEP CHART - ORDER FLOW BUBBLES
+// ==========================================
+// Note: CVD logic calculation is already done above.
+
+// --- Deep Market (DOM) Bubble Logic ---
+ltf_close = request.security_lower_tf(syminfo.tickerid, ltf, close)
+ltf_vol   = request.security_lower_tf(syminfo.tickerid, ltf, volume)
+
+if array.size(ltf_close) > 0
+    float barAvgVol = array.avg(ltf_vol)
+    
+    for i = 0 to array.size(ltf_close) - 1
+        float price  = array.get(ltf_close, i)
+        float vol    = array.get(ltf_vol, i)
+        
+        if vol > (barAvgVol * volThreshold)
+            bool isAggressiveBuy = i > 0 ? array.get(ltf_close, i) > array.get(ltf_close, i-1) : close > open
+            color bubbleCol = isAggressiveBuy ? color.new(color.teal, 40) : color.new(color.red, 40)
+            
+            string bSize = size.tiny
+            if vol > barAvgVol * 5
+                bSize := size.large
+            else if vol > barAvgVol * 3
+                bSize := size.normal
+            else
+                bSize := size.small
+            
+            label.new(
+                 bar_index, 
+                 price, 
+                 text = "", 
+                 color = bubbleCol, 
+                 style = label.style_circle, 
+                 size = bSize
+             )
+
+// --- Entry Signal logic ---
+bool buyEntry  = close > open and lastV > 0 and low == low[1]
+bool sellEntry = close < open and lastV < 0 and high == high[1]
+
+plotshape(buyEntry, style=shape.triangleup, location=location.belowbar, color=color.teal, size=size.small, title="Long Signal")
+plotshape(sellEntry, style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, title="Short Signal")
