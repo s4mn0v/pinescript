@@ -1,0 +1,82 @@
+//@version=6
+indicator("Cumulative Volume Delta (Architect Dynamic)", "CVD_Arch", format=format.volume)
+
+import TradingView/ta/9
+
+// ==========================================
+// 1. ARCHITECT'S DYNAMIC LOGIC
+// ==========================================
+groupArch = "INTELLIGENCE - ACTIVE MODE"
+useAuto   = input.bool(true, "ACTIVE MODE ARCHITECT", group=groupArch)
+
+// Detect the current timeframe of the chart in minutes
+float tf_minutes = timeframe.multiplier / (timeframe.isseconds ? 60 : 1)
+if timeframe.isdaily
+    tf_minutes := 1440
+else if timeframe.isweekly
+    tf_minutes := 10080
+else if timeframe.ismonthly
+    tf_minutes := 43200
+
+// Automatic Anchor Selection Logic
+string auto_anchor = "D"
+
+if tf_minutes <= 5
+    auto_anchor := "D" 
+else if tf_minutes > 5 and tf_minutes <= 60
+    auto_anchor := "W"
+else if tf_minutes > 60 and tf_minutes <= 240
+    auto_anchor := "M"
+else
+    auto_anchor := "3M" 
+
+// ==========================================
+// 2. INPUTS & CONFIGURATION
+// ==========================================
+manAnchor = input.timeframe("1D", "Manual Anchor Period", group="Manual Settings")
+
+lowerTimeframeTooltip = "The indicator scans lower timeframe data. High-frequency charts (1s/1m) might hit data limits if the Anchor period is too large."
+useCustomTimeframeInput = input.bool(false, "Use custom LTF Scanning", tooltip = lowerTimeframeTooltip, group="Manual Settings")
+lowerTimeframeInput = input.timeframe("1", "Internal Timeframe", active = useCustomTimeframeInput, group="Manual Settings")
+
+// Resolve Final Anchor
+finalAnchor = useAuto ? auto_anchor : manAnchor
+
+// Resolve Internal Scanning Timeframe
+var lowerTimeframe = switch
+    useCustomTimeframeInput => lowerTimeframeInput
+    timeframe.isseconds     => "1S"
+    timeframe.isintraday    => "1"
+    timeframe.isdaily       => "5"
+    => "60"
+
+// ==========================================
+// 3. CVD CALCULATION & PLOTTING
+// ==========================================
+[openVolume, maxVolume, minVolume, lastVolume] = ta.requestVolumeDelta(lowerTimeframe, finalAnchor)
+
+color bodyColor   = lastVolume >= openVolume ? color.white : color.black
+color borderColor = color.white
+
+hline(0, "Zero Line", color=color.new(color.gray, 50), linestyle=hline.style_dotted)
+
+plotcandle(openVolume, maxVolume, minVolume, lastVolume, "CVD Candles", 
+     color       = bodyColor, 
+     bordercolor = borderColor, 
+     wickcolor   = borderColor)
+
+// ==========================================
+// 4. DATA VALIDATION (FIXED)
+// ==========================================
+var bool hasAnyVolume = false
+if nz(volume) > 0
+    hasAnyVolume := true
+
+var table dash = table.new(position.top_right, 2, 2, bgcolor=color.new(color.black, 50), border_width=1, border_color=color.gray)
+
+if barstate.islast
+    if not hasAnyVolume
+        table.cell(dash, 0, 0, "⚠️ NO VOLUME DATA ON THIS SYMBOL", text_color=color.yellow, text_size=size.small)
+    else if useAuto
+        table.cell(dash, 0, 0, "Architect Mode: ACTIVE", text_color=color.white, text_size=size.small)
+        table.cell(dash, 0, 1, "Reset Period: " + finalAnchor, text_color=color.white, text_size=size.small)
