@@ -21,6 +21,8 @@
 8. [Order Flow Bubbles](DEEP-CHART/README.md)<br>
     Deep Chart is an indicator I designed to show you the hidden "tug-of-war" inside every single candle. I created this by utilizing TradingView's ability to peak inside a bar to see the tiny trades that normally stay hidden. I have included a system of colorful "Bubbles" to mark exactly where the big, aggressive trades happened. I developed this by utilizing internal scanning logic to find the exact price levels of high activity. The result is a clear map I built to show market "hot spots" without the need to switch between different charts or timeframes.
 
+9. [Market Profile — Performance and Stability Fixes](MARKET-PROFILE/README.md)<br>
+    Optimized Market Profile indicator with major performance improvements, faster Volume Profile POC calculation, and fixes for Pine Script v5 runtime errors, index safety, and ticker handling.
 <br>
 
 ---
