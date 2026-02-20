@@ -668,3 +668,4 @@ bgcolor(bg_color())
 
 if is_first_bar_of_session() or not should_process()
     highlight_close_tpo()
+
