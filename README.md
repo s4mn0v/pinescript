@@ -1,10 +1,20 @@
 # Indicators in Pine Script
 
+> [!TIP]
+> RSI + MFI image
+> <img width="1835" height="959" alt="image" src="https://github.com/user-attachments/assets/86022bdd-ec0c-4af7-b965-c746c4149051" />
+
 1. [Confirm signals | RSI + MFI](RSI+MFI/README.md)<br>
     Confirm whether a signal is TRUE or FALSE by comparing price (RSI) with volume (MFI).
    
 3. [RSI - Divergences Indicator](RSI+MFI/RSITMA.md)<br>
     Combined momentum indicator displaying RSI, MFI (Money Flow Index), TMA (Triangular Moving Average), and automatic divergence detection.
+   
+---
+
+> [!TIP]
+> BB + EMA Crossovers
+> <img width="1835" height="959" alt="image" src="https://github.com/user-attachments/assets/87b77e9c-fe47-4211-a049-9637a3d915ce" />
 
 4. [EMA Crossovers Strategy](CROSSOVER-EMAs/README.md)<br>
     This strategy automatically buys and sells based on the crossover of two lines: a fast EMA (9 periods) and a slow EMA (21 periods).
@@ -15,11 +25,28 @@
 6. [OBV & Bollinger Bands](OBV+BOLLINGER-BANDS/README.md)<br>
   This indicator analyzes trading volume to confirm the strength of price trends. It combines OBV (On Balance Volume) with Bollinger Bands and a fast EMA.
 
+---
+
+> [!TIP]
+> MACD Impulse V2
+> <img width="1835" height="959" alt="image" src="https://github.com/user-attachments/assets/b4285282-bc4b-4d48-812e-e0128e5a3d19" />
+
 7. [MACD Impulse](MACD-IMPULSE/README.md)<br>
     This indicator measures the strength of price momentum in a smoother and less noisy way than traditional MACD. It uses special moving averages to filter out market noise.
+---
+
+> [!TIP]
+> Order Flow Bubbles (Simple Version)
+> <img width="1835" height="959" alt="image" src="https://github.com/user-attachments/assets/0a0c416b-fb4d-4392-aef3-5249b1571f97" />
 
 8. [Order Flow Bubbles](DEEP-CHART/README.md)<br>
     Deep Chart is an indicator I designed to show you the hidden "tug-of-war" inside every single candle. I created this by utilizing TradingView's ability to peak inside a bar to see the tiny trades that normally stay hidden. I have included a system of colorful "Bubbles" to mark exactly where the big, aggressive trades happened. I developed this by utilizing internal scanning logic to find the exact price levels of high activity. The result is a clear map I built to show market "hot spots" without the need to switch between different charts or timeframes.
+
+---
+
+> [!TIP]
+> Market Profile (Last Version - Fixed Version)
+> <img width="1835" height="959" alt="image" src="https://github.com/user-attachments/assets/06a99737-160f-471a-b782-f2a9889a7884" />
 
 9. [Market Profile — Performance and Stability Fixes](MARKET-PROFILE/README.md)<br>
     Optimized Market Profile indicator with major performance improvements, faster Volume Profile POC calculation, and fixes for Pine Script v5 runtime errors, index safety, and ticker handling.
