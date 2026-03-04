@@ -1,0 +1,89 @@
+indicator("Deep Chart + BB (Architect Edition)", shorttitle = "DeepBB_PRO", overlay = true, max_labels_count = 500)
+
+groupBB = "Bollinger Bands & Contexto"
+length   = input.int(20, "Longitud BB", minval=1, group=groupBB)
+mult     = input.float(2.0, "Desviación Std", group=groupBB)
+src      = input(close, "Fuente", group=groupBB)
+
+groupDeep = "Order Flow (Burbujas)"
+
+volThreshold = input.float(1.5, "Sensibilidad de Volumen (1.0 - 5.0)", minval = 0.5, step = 0.1, group=groupDeep, tooltip="Sube esto si ves demasiadas burbujas. Bájalo si ves pocas.")
+
+volLookback  = input.int(50, "Memoria de Volumen (Barras)", minval=10, group=groupDeep)
+minBubbleSize = input.string(size.tiny, "Tamaño Mínimo", options=[size.tiny, size.small, size.normal], group=groupDeep)
+
+var float cvd = 0.0
+float buyVol = close > open ? volume : 0
+float sellVol = close < open ? volume : 0
+cvd := cvd + (buyVol - sellVol)
+
+cvdColor = close > open ? color.new(color.teal, 90) : color.new(color.red, 90)
+
+basis = ta.sma(src, length)
+dev   = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+p1 = plot(upper, "Upper", color=color.new(color.red, 50))
+p2 = plot(lower, "Lower", color=color.new(color.teal, 50))
+fill(p1, p2, title = "Rango Operativo", color = cvdColor)
+plot(basis, "Basis", color=color.new(color.white, 70))
+
+var string ltf = ""
+if timeframe.isseconds
+    ltf := "1S" 
+
+else if timeframe.isintraday
+    if timeframe.multiplier <= 5
+        ltf := "1" 
+
+    else
+        ltf := "5" 
+
+else
+    ltf := "60" 
+
+ltf_close = request.security_lower_tf(syminfo.tickerid, ltf, close)
+ltf_open  = request.security_lower_tf(syminfo.tickerid, ltf, open)
+ltf_vol   = request.security_lower_tf(syminfo.tickerid, ltf, volume)
+
+chartAvgVol = ta.sma(volume, volLookback) 
+
+ltf_ratio = array.size(ltf_close) 
+
+baselineVol = ltf_ratio > 0 ? (chartAvgVol / ltf_ratio) : 0
+
+if array.size(ltf_close) > 0 and baselineVol > 0
+
+    for i = 0 to array.size(ltf_close) - 1
+        float v  = array.get(ltf_vol, i)
+        float c  = array.get(ltf_close, i)
+        float o  = array.get(ltf_open, i)
+
+        if v > (baselineVol * volThreshold)
+
+            bool isBuy = c >= o
+
+            string bSize = minBubbleSize
+            if v > (baselineVol * volThreshold * 3)
+                bSize := size.normal
+            else if v > (baselineVol * volThreshold * 5)
+                bSize := size.large
+
+            color bColor = isBuy ? color.new(color.teal, 30) : color.new(color.red, 30)
+
+            label.new(
+                 bar_index, 
+                 c, 
+                 text = "", 
+                 xloc = xloc.bar_index, 
+                 yloc = yloc.price, 
+                 color = bColor, 
+                 style = label.style_circle, 
+                 size = bSize,
+                 tooltip = "Vol: " + str.tostring(v, format.volume)
+             )
+
+bool anomaly = volume > (chartAvgVol * 2)
+plotshape(anomaly and close > open, "Compra Institucional", shape.triangleup, location.belowbar, color.lime, size=size.tiny)
+plotshape(anomaly and close < open, "Venta Institucional", shape.triangledown, location.abovebar, color.red, size=size.tiny)
