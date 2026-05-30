@@ -1,4 +1,4 @@
-# Indicators in Pine Script
+<img width="1309" height="1001" alt="image" src="https://github.com/user-attachments/assets/5b89e75c-8d12-4dd2-a2c9-2086956accd7" /># Indicators in Pine Script
 
 > [!TIP]
 > RSI + MFI image
@@ -53,5 +53,10 @@
 <br>
 
 ---
-> [!NOTE]
-> I got bored so I'm learning new skills
+
+> [!TIP]
+> Volume Profile ULTRA Precise
+> <img width="1309" height="1001" alt="image" src="https://github.com/user-attachments/assets/8dfc7382-ca73-4603-b629-3fc501edcccc" />
+
+10. [Volume Profile ULTRA Precise](VOLUME-PROFILE/README.md)<br>
+    Indicator track volume at price. Reset every day 00:00 UTC. Use 1-minute data. Much precise.
