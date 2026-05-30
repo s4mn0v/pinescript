@@ -1,0 +1,89 @@
+//@version=6
+indicator(title="Hybrid RSI+MFI [Scale 1.0] - Gold Divergence", shorttitle="HB_V6_GOLD", format=format.price, precision=2)
+
+// ============================================================================
+// CONFIGURACIÓN DE LÓGICA
+// ============================================================================
+grp_div = "Sensibilidad de Divergencia"
+divSensitivity = input.float(1.5, "Amplificador de Divergencia", minval=1.0, maxval=3.0, step=0.1, tooltip="Cuando hay divergencia, este factor 'estira' el MFI para que la caída o subida de la línea sea visualmente dramática.")
+mfiBaseWeight  = input.float(0.7, "MFI Dominance (Base)", minval=0.1, maxval=1.0, step=0.05)
+
+grp_rsi = "RSI Settings"
+rsiLen = input.int(14, "RSI Length", minval=1, group=grp_rsi)
+rsiSrc = input.source(close, "RSI Source", group=grp_rsi)
+
+grp_mfi = "MFI Settings"
+mfiLen = input.int(14, "MFI Length", minval=1, group=grp_mfi)
+
+// ============================================================================
+// CÁLCULOS BASE (Consistencia en cada barra)
+// ============================================================================
+rsiRaw = ta.rsi(rsiSrc, rsiLen)
+mfiRaw = ta.mfi(hlc3, mfiLen)
+
+// Detección de Pendientes (Slopes) mediante regresión lineal de 5 periodos
+pSlopeCurr = ta.linreg(close, 5, 0)
+pSlopePrev = ta.linreg(close, 5, 1)
+priceSlope = pSlopeCurr - pSlopePrev
+
+mSlopeCurr = ta.linreg(mfiRaw, 5, 0)
+mSlopePrev = ta.linreg(mfiRaw, 5, 1)
+mfiSlope   = mSlopeCurr - mSlopePrev
+
+// ¿Divergencia? Signo opuesto entre tendencia de precio y tendencia de flujo de dinero
+isDiverging = math.sign(priceSlope) != math.sign(mfiSlope)
+
+// ============================================================================
+// PROCESAMIENTO HÍBRIDO (Escala 0.0 - 1.0)
+// ============================================================================
+// Aumento de peso del MFI durante la divergencia para dominar la lógica
+dynamicMfiWeight = isDiverging ? math.min(mfiBaseWeight * 1.5, 0.95) : mfiBaseWeight
+dynamicRsiWeight = 1.0 - dynamicMfiWeight
+
+// Amplificación visual del MFI en conflicto
+mfiStretched = (mfiRaw - 50) * (isDiverging ? divSensitivity : 1.0) + 50
+mfiClean     = math.max(0, math.min(100, mfiStretched))
+
+// Resultado Final Normalizado
+hybridOsc = ((rsiRaw * dynamicRsiWeight) + (mfiClean * dynamicMfiWeight)) / 100.0
+
+// TMA (SMMA sobre el híbrido) calculada fuera de bloques para evitar advertencias
+tmaLen  = input.int(40, "TMA Length", minval=1, group="Visuals")
+smaInit = ta.sma(hybridOsc, tmaLen)
+var float tma = na
+tma := na(tma[1]) ? smaInit : (tma[1] * (tmaLen - 1) + hybridOsc) / tmaLen
+
+// ============================================================================
+// CORRELACIÓN USDT.D (Natural/Inversa)
+// ============================================================================
+grp_usdt = "USDT Dominance"
+showUsdt = input.bool(true, "Show USDT.D (Inverse)", group=grp_usdt)
+usdtRaw  = request.security("CRYPTOCAP:USDT.D", timeframe.period, close)
+// Se grafica su RSI normalizado: Naturalmente cae si el mercado sube
+usdtNorm = ta.rsi(usdtRaw, rsiLen) / 100.0
+
+// ============================================================================
+// VISUALES FINALIZADOS (Colores Dorados Originales)
+// ============================================================================
+h_upper = hline(0.70, "Sobrecompra", color=color.new(#787B86, 60))
+h_mid   = hline(0.50, "Punto Medio", color=color.new(#787B86, 80), linestyle=hline.style_dotted)
+h_lower = hline(0.30, "Sobreventa", color=color.new(#787B86, 60))
+fill(h_upper, h_lower, color=color.rgb(67, 66, 179, 94), title="Banda Central")
+
+// 1. PLOT USDT.D (Correlación Inversa)
+// Color amarillo suave y línea más fina para no distraer del híbrido
+plot(showUsdt ? usdtNorm : na, "USDT Dominance", color=color.new(#ffeb3b, 60), linewidth=1, style=plot.style_line)
+
+// 2. PLOT HÍBRIDO (Color Oro Original en Divergencia)
+// Si hay divergencia la línea se vuelve Oro (#ffeb3b), si no, permanece Blanca
+lineColor  = isDiverging ? #ffeb3b : color.white
+// Opacidad: Brillante sobre la TMA, tenue debajo
+lineOpacity = hybridOsc > tma ? 0 : 40
+
+plotHybrid = plot(hybridOsc, "Hybrid Main", color=color.new(lineColor, lineOpacity), linewidth=3)
+plot(tma, "TMA Line", color=color.new(color.gray, 60), linewidth=1)
+
+// 3. GRADIENTES DE ZONA (Escala 0-1)
+midPlot = plot(0.5, display=display.none, editable=false)
+fill(plotHybrid, midPlot, 1.0, 0.7, top_color=color.new(color.teal, 30), bottom_color=color.new(color.teal, 90))
+fill(plotHybrid, midPlot, 0.3, 0.0, top_color=color.new(color.red, 90), bottom_color=color.new(color.red, 30))
