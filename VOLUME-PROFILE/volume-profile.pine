@@ -1,0 +1,135 @@
+//@version=6
+indicator('Volume Profile ULTRA Precise V6 4D UTC Fixed', overlay=true, max_boxes_count=500, max_bars_back=5000, max_lines_count=500)
+
+// --- INPUTS ---
+cnum    = input.int(60, "Row size (Lower to see more history)", minval=20, maxval=200)
+percent = input.float(70., "Value Area Volume %", minval=0, maxval=100)
+
+// --- GLOBAL CALCULATIONS (FIX WARNING) ---
+day_time   = time("D", "0000-0000", "UTC+0")
+day_change = ta.change(day_time) != 0
+
+// --- TIMEFRAME FILTER ---
+is_allowed = timeframe.isintraday and timeframe.multiplier <= 60
+
+// --- LTF DATA (FIX ERROR) ---
+[ltf_h, ltf_l, ltf_v, ltf_u] = request.security_lower_tf(syminfo.tickerid, "1", [high, low, volume, close >= open])
+
+// --- DISEÑO ---
+green_hex   = #089981
+width_pct   = 40 
+vup_color   = color.new(green_hex, 0), vdown_color = color.new(green_hex, 65)   
+up_color    = color.new(green_hex, 65), down_color  = color.new(color.purple, 65)   
+border_col  = color.new(color.black, 80) 
+
+// --- ARRAY STORAGE ---
+var ltf_h_all = array.new<float>()
+var ltf_l_all = array.new<float>()
+var ltf_v_all = array.new<float>()
+var ltf_u_all = array.new<bool>()
+
+var day_start_ltf_idx = array.new<int>()
+var day_start_bar_idx = array.new<int>()
+var day_tops          = array.new<float>()
+var day_bots          = array.new<float>()
+
+// --- LOGIC ---
+if is_allowed
+    if day_change
+        day_start_ltf_idx.push(ltf_h_all.size())
+        day_start_bar_idx.push(bar_index)
+        day_tops.push(high)
+        day_bots.push(low)
+        
+        if day_start_ltf_idx.size() > 4
+            int offset = day_start_ltf_idx.get(1)
+            day_start_ltf_idx.shift()
+            day_start_bar_idx.shift()
+            day_tops.shift()
+            day_bots.shift()
+            
+            if ltf_h_all.size() >= offset and offset > 0
+                ltf_h_all := array.slice(ltf_h_all, offset).copy()
+                ltf_l_all := array.slice(ltf_l_all, offset).copy()
+                ltf_v_all := array.slice(ltf_v_all, offset).copy()
+                ltf_u_all := array.slice(ltf_u_all, offset).copy()
+            
+            for i = 0 to day_start_ltf_idx.size() - 1
+                day_start_ltf_idx.set(i, math.max(0, day_start_ltf_idx.get(i) - offset))
+
+    if day_tops.size() > 0
+        day_tops.set(day_tops.size() - 1, math.max(day_tops.get(day_tops.size() - 1), high))
+        day_bots.set(day_bots.size() - 1, math.min(day_bots.get(day_bots.size() - 1), low))
+
+    if not na(ltf_h)
+        ltf_h_all.concat(ltf_h)
+        ltf_l_all.concat(ltf_l)
+        ltf_v_all.concat(ltf_v)
+        ltf_u_all.concat(ltf_u)
+
+// --- DRAWING ---
+if is_allowed and barstate.islast
+    for d = 0 to day_start_ltf_idx.size() - 1
+        d_start_ltf = day_start_ltf_idx.get(d)
+        d_end_ltf   = (d < day_start_ltf_idx.size() - 1) ? day_start_ltf_idx.get(d + 1) - 1 : ltf_h_all.size() - 1
+        d_top = day_tops.get(d), d_bot = day_bots.get(d)
+        d_start_bar = day_start_bar_idx.get(d)
+        d_bbars = (d < day_start_bar_idx.size() - 1) ? day_start_bar_idx.get(d + 1) - d_start_bar : bar_index - d_start_bar + 1
+
+        step = (d_top - d_bot) / cnum
+        levels = array.new<float>(cnum + 1)
+        for x = 0 to cnum
+            levels.set(x, d_bot + step * x)
+
+        v_up = array.new<float>(cnum, 0.), v_dn = array.new<float>(cnum, 0.)
+
+        if ltf_h_all.size() > 0 and d_end_ltf >= d_start_ltf
+            for i = d_start_ltf to d_end_ltf
+                h = ltf_h_all.get(i), l = ltf_l_all.get(i)
+                v = ltf_v_all.get(i), u = ltf_u_all.get(i), r = h - l
+                for x = 0 to cnum - 1
+                    r_b = levels.get(x), r_t = levels.get(x + 1)
+                    intersect = math.max(0, math.min(r_t, h) - math.max(r_b, l))
+                    if intersect > 0
+                        share = (r > 0) ? (intersect / r) * v : v
+                        if u
+                            v_up.set(x, v_up.get(x) + share)
+                        else
+                            v_dn.set(x, v_dn.get(x) + share)
+
+        totalvols = array.new<float>(cnum, 0.)
+        for x = 0 to cnum - 1
+            totalvols.set(x, v_up.get(x) + v_dn.get(x))
+
+        if totalvols.sum() > 0
+            int poc_idx = totalvols.indexof(totalvols.max())
+            va_goal = totalvols.sum() * percent / 100., va_curr = totalvols.get(poc_idx)
+            int u_idx = poc_idx, int d_idx = poc_idx
+            
+            while va_curr < va_goal and (u_idx < cnum - 1 or d_idx > 0)
+                v_a = u_idx < cnum - 1 ? totalvols.get(u_idx + 1) : 0.
+                v_b = d_idx > 0 ? totalvols.get(d_idx - 1) : 0.
+                if v_a >= v_b and u_idx < cnum - 1
+                    va_curr += v_a, u_idx += 1
+                else if d_idx > 0
+                    va_curr += v_b, d_idx -= 1
+                else
+                    break
+
+            max_rv = totalvols.max()
+            for x = 0 to cnum - 1
+                in_va = x >= d_idx and x <= u_idx
+                vu = v_up.get(x), vd = v_dn.get(x)
+                x2_u = d_start_bar + math.round((vu / max_rv) * (d_bbars * width_pct / 100))
+                x2_d = x2_u + math.round((vd / max_rv) * (d_bbars * width_pct / 100))
+                y_h = levels.get(x + 1), y_l = levels.get(x)
+                y_h_adj = y_l + (y_h - y_l) * 0.9 
+                
+                box.new(d_start_bar, y_h_adj, x2_u, y_l, border_width=1, border_color=border_col, bgcolor = in_va ? vup_color : up_color)
+                box.new(x2_u, y_h_adj, x2_d, y_l, border_width=1, border_color=border_col, bgcolor = in_va ? vdown_color : down_color)
+
+            poc_p = levels.get(poc_idx) + (step / 2)
+            vah_p = levels.get(u_idx + 1), val_p = levels.get(d_idx)
+            line.new(d_start_bar, poc_p, d_start_bar + d_bbars - 1, poc_p, color=color.white, width=2)
+            line.new(d_start_bar, vah_p, d_start_bar + d_bbars - 1, vah_p, color=color.orange, style=line.style_dashed)
+            line.new(d_start_bar, val_p, d_start_bar + d_bbars - 1, val_p, color=color.orange, style=line.style_dashed)
